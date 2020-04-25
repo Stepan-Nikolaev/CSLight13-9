@@ -15,8 +15,9 @@ namespace CSLight13_9
             Catalog catalog = new Catalog();
             int userInput = -1;
             int userChoice;
+            bool carServiceWorking = true;
 
-            while (userInput != 0)
+            while (carServiceWorking)
             {
                 Console.Clear();
                 carService.DisplayWallet();
@@ -45,12 +46,14 @@ namespace CSLight13_9
                         {
                             carService.DisplayWarehouseDetail();
                             int DetailNumber = Convert.ToInt32(Console.ReadLine());
-                            userInput = carService.TakeIncome(car.Repair(carService.Repair(DetailNumber)));
+                            Detail detailForRepair = carService.Repair(DetailNumber);
+                            int countIncome = car.Repair(detailForRepair);
+                            carServiceWorking = carService.TakeIncome(countIncome);
                         }
                         else if (userChoice == 2)
                         {
                             Console.Clear();
-                            userInput = carService.PayFine();
+                            carServiceWorking = carService.PayFine();
                             Console.WriteLine("Шраф 100 рублей");
                             Console.ReadKey();
                         }
@@ -76,6 +79,7 @@ namespace CSLight13_9
                         Console.ReadKey();
                         break;
                     case 0:
+                        carServiceWorking = false;
                         break;
                     default:
                         Console.Clear();
@@ -128,7 +132,7 @@ namespace CSLight13_9
                 return _warehouseDetail.GiveDetail(detailNumber);
             }
 
-            public int TakeIncome(int countIncome)
+            public bool TakeIncome(int countIncome)
             {
                 Console.Clear();
 
@@ -149,13 +153,13 @@ namespace CSLight13_9
                     Console.Clear();
                     Console.WriteLine("Сожалеем. Ваш балланс опустился ниже нуля. Вы обанкротились.");
                     Console.ReadKey();
-                    return 0;
+                    return false;
                 }
                 else
-                    return -1;
+                    return true;
             }
 
-            public int PayFine()
+            public bool PayFine()
             {
                 _wallet -= 100;
 
@@ -164,10 +168,10 @@ namespace CSLight13_9
                     Console.Clear();
                     Console.WriteLine("Сожалеем. Ваш балланс опустился ниже нуля. Вы обанкротились.");
                     Console.ReadKey();
-                    return 0;
+                    return false;
                 }
                 else
-                    return -1;
+                    return true;
             }
         }
 
