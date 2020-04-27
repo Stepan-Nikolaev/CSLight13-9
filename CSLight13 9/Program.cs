@@ -10,10 +10,11 @@ namespace CSLight13_9
     {
         static void Main(string[] args)
         {
+            City city = new City();
             CarService carService = new CarService();
-            Car car = new Car();
-            Catalog catalog = new Catalog();
-            int userInput = -1;
+            Car car;
+            DetailsStore detailsStore = new DetailsStore();
+            int userInput;
             int userChoice;
             bool carServiceWorking = true;
 
@@ -32,7 +33,7 @@ namespace CSLight13_9
                 switch (userInput)
                 {
                     case 1:
-                        car.ReceptionNextCar();
+                        car = city.NextCar();
                         Console.Clear();
                         Console.WriteLine("Новый клиент:");
                         car.DisplayBreakageName();
@@ -65,9 +66,9 @@ namespace CSLight13_9
                         }
                         break;
                     case 2:
-                        catalog.Menu();
+                        detailsStore.Menu();
                         userChoice = Convert.ToInt32(Console.ReadLine());
-                        Detail detail = catalog.SellingDetail(userChoice);
+                        Detail detail = detailsStore.SellingDetail(userChoice);
 
                         if (detail != null)
                         {
@@ -105,7 +106,7 @@ namespace CSLight13_9
                 if ((_wallet - detail.Price) >= 0)
                 {
                     _wallet -= detail.Price;
-                    _warehouseDetail.TakeDetail(detail);
+                    _warehouseDetail.Add(detail);
                 }
                 else
                 {
@@ -129,7 +130,7 @@ namespace CSLight13_9
 
             public Detail Repair(int detailNumber)
             {
-                return _warehouseDetail.GiveDetail(detailNumber);
+                return _warehouseDetail.GetDetail(detailNumber);
             }
 
             public bool TakeIncome(int countIncome)
@@ -179,12 +180,12 @@ namespace CSLight13_9
         {
             private List<Detail> _details = new List<Detail>();
 
-            public void TakeDetail(Detail detail)
+            public void Add(Detail detail)
             {
                 _details.Add(detail);
             }
 
-            public Detail GiveDetail(int detailNumber)
+            public Detail GetDetail(int detailNumber)
             {
                 Detail detail = _details[detailNumber - 1];
                 _details.RemoveAt(detailNumber - 1);
@@ -209,172 +210,125 @@ namespace CSLight13_9
             }
         }
 
-        class Catalog
+        class DetailsStore
         {
-            private Windshield _windshield = new Windshield();
-            private Wheel _wheel = new Wheel();
-            private Bamper _bamper = new Bamper();
-            private Motor _motor = new Motor();
-            private Hood _hood = new Hood();
+            private List<Detail> _details = new List<Detail>();
+
+            public DetailsStore()
+            {
+                _details.Add(new Windshield());
+                _details.Add(new Wheel());
+                _details.Add(new Bamper());
+                _details.Add(new Motor());
+                _details.Add(new Hood());
+            }
+
 
             public void Menu()
             {
                 Console.Clear();
                 Console.WriteLine("Список деталей в каталоге, доступных для продажи");
-                Console.WriteLine($"1. {_windshield.Name}   Цена: {_windshield.Price}");
-                Console.WriteLine($"2. {_wheel.Name}   Цена: {_wheel.Price}");
-                Console.WriteLine($"3. {_bamper.Name}   Цена: {_bamper.Price}");
-                Console.WriteLine($"4. {_motor.Name}   Цена: {_motor.Price}");
-                Console.WriteLine($"5. {_hood.Name}   Цена: {_hood.Price}");
+
+                for (int i = 0; i < _details.Count; i++)
+                {
+                    Console.WriteLine($"{i+1}. {_details[i].Name}   Цена: {_details[i].Price}");
+                }
+
                 Console.WriteLine("0. Выйти");
             }
 
             public Detail SellingDetail(int detailID)
             {
-                switch (detailID)
+                if (detailID <= _details.Count && detailID > 0)
                 {
-                    case 1:
-                        _windshield = new Windshield();
-                        return _windshield;
-                        break;
-                    case 2:
-                        _wheel = new Wheel();
-                        return _wheel;
-                        break;
-                    case 3:
-                        _bamper = new Bamper();
-                        return _bamper;
-                        break;
-                    case 4:
-                        _motor = new Motor();
-                        return _motor;
-                        break;
-                    case 5:
-                        _hood = new Hood();
-                        return _hood;
-                        break;
-                    case 0:
-                        return null;
-                        break;
-                    default:
-                        Console.Clear();
-                        Console.WriteLine("Такой детали не существует");
-                        Console.ReadKey();
-                        return null;
-                        break;
+                    return _details[detailID - 1];
                 }
+                else
+                {
+                    Console.Clear();
+                    Console.WriteLine("Такой детали не существует");
+                    Console.ReadKey();
+                    return null;
+                }
+            }
+        }
+
+        class City
+        {
+            private Car _car;
+
+            public Car NextCar()
+            {
+                _car = new Car();
+
+                return _car;
             }
         }
 
         class Car
         {
             Random random = new Random();
-            private Breakage _breakage;
+            private List<Detail> _details = new List<Detail>();
+            private Detail _brokenDetail;
 
-            public void ReceptionNextCar()
+            public Car()
             {
-                int breakageID = random.Next(0, 5);
+                _details.Add(new Windshield());
+                _details.Add(new Wheel());
+                _details.Add(new Bamper());
+                _details.Add(new Motor());
+                _details.Add(new Hood());
 
-                switch (breakageID)
-                {
-                    case 1:
-                        _breakage = new BreakageWindshield();
-                        break;
-                    case 2:
-                        _breakage = new BreakageWheel();
-                        break;
-                    case 3:
-                        _breakage = new BreakageBamper();
-                        break;
-                    case 4:
-                        _breakage = new BreakageMotor();
-                        break;
-                    case 5:
-                        _breakage = new BreakageHood();
-                        break;
-                }
+                int brokenDetailID = random.Next(0, 5);
+                _details[brokenDetailID].Break();
+                _brokenDetail = _details[brokenDetailID];
             }
 
-            public int Repair(Detail detail)
+            public int Repair(Detail newDetail)
             {
-                if (detail.Name == _breakage.NameRequiredDetail)
-                    return detail.Price + _breakage.RepairPrice;
+                if (newDetail.Name == _brokenDetail.Name)
+                {
+                    _brokenDetail.Repair();
+
+                    return newDetail.Price + _brokenDetail.RepairPrice;
+                }
                 else
-                    return -(detail.Price + _breakage.RepairPrice)/2;
+                    return -(newDetail.Price + _brokenDetail.RepairPrice) / 2;
             }
 
             public void DisplayBreakageName()
             {
-                Console.WriteLine("Поломка - " + _breakage.Name);
+                Console.WriteLine("Поломка - " + _brokenDetail.BreakageName);
             }
 
             public int ReturnRepairPrice()
             {
-                return _breakage.RepairPrice;
-            }
-        }
-
-        class Breakage
-        {
-            public string Name { get; protected set; }
-            public string NameRequiredDetail { get; protected set; }
-            public int RepairPrice { get; protected set; }
-        }
-
-        class BreakageWindshield : Breakage
-        {
-            public BreakageWindshield()
-            {
-                Name = "Разбитое лобовое стекло";
-                NameRequiredDetail = "Лобовое стекло";
-                RepairPrice = 600;
-            }
-        }
-
-        class BreakageWheel : Breakage
-        {
-            public BreakageWheel()
-            {
-                Name = "Пробитое колесо";
-                NameRequiredDetail = "Колесо";
-                RepairPrice = 100;
-            }
-        }
-
-        class BreakageBamper : Breakage
-        {
-            public BreakageBamper()
-            {
-                Name = "Треснувший бампер";
-                NameRequiredDetail = "Бампер";
-                RepairPrice = 200;
-            }
-        }
-
-        class BreakageMotor : Breakage
-        {
-            public BreakageMotor()
-            {
-                Name = "Стукнутый двигатель";
-                NameRequiredDetail = "Мотор";
-                RepairPrice = 2000;
-            }
-        }
-
-        class BreakageHood : Breakage
-        {
-            public BreakageHood()
-            {
-                Name = "Погнутый капот";
-                NameRequiredDetail = "Капот";
-                RepairPrice = 500;
+                return _brokenDetail.RepairPrice;
             }
         }
 
         class Detail
         {
             public int Price { get; protected set; }
+            public int RepairPrice { get; protected set; }
             public string Name { get; protected set; }
+            public string BreakageName { get; protected set; }
+            public bool Broken { get; protected set; }
+
+            public Detail()
+            {
+                Broken = false;
+            }
+
+            public void Break()
+            {
+                Broken = true;
+            }
+
+            public void Repair()
+            {
+                Broken = false;
+            }
         }
 
         class Windshield : Detail
@@ -382,6 +336,8 @@ namespace CSLight13_9
             public Windshield()
             {
                 Name = "Лобовое стекло";
+                BreakageName = "Разбитое лобовое стекло";
+                RepairPrice = 600;
                 Price = 1600;
             }
         }
@@ -392,6 +348,8 @@ namespace CSLight13_9
             {
                 Name = "Колесо";
                 Price = 300;
+                BreakageName = "Пробитое колесо";
+                RepairPrice = 100;
             }
         }
 
@@ -401,6 +359,8 @@ namespace CSLight13_9
             {
                 Name = "Бампер";
                 Price = 500;
+                BreakageName = "Треснувший бампер";
+                RepairPrice = 200;
             }
         }
 
@@ -410,6 +370,8 @@ namespace CSLight13_9
             {
                 Name = "Мотор";
                 Price = 10000;
+                BreakageName = "Стукнутый двигатель";
+                RepairPrice = 2000;
             }
         }
 
@@ -419,6 +381,8 @@ namespace CSLight13_9
             {
                 Name = "Капот";
                 Price = 2000;
+                BreakageName = "Погнутый капот";
+                RepairPrice = 500;
             }
         }
     }
