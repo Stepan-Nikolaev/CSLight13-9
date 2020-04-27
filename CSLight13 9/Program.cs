@@ -10,7 +10,7 @@ namespace CSLight13_9
     {
         static void Main(string[] args)
         {
-            City city = new City();
+            DailyQueueOfCars dailyQueueOfCars = new DailyQueueOfCars();
             CarService carService = new CarService();
             Car car;
             DetailsStore detailsStore = new DetailsStore();
@@ -33,17 +33,44 @@ namespace CSLight13_9
                 switch (userInput)
                 {
                     case 1:
-                        car = city.NextCar();
+                        car = dailyQueueOfCars.ReturnNextCar();
+
+                        if (car == null)
+                        {
+                            Console.Clear();
+                            Console.WriteLine($"На сегодня клиенты закончились. Поздравляем с окончанием рабочего дня! Хотите начать новый день?");
+                            Console.WriteLine("1. Да.");
+                            Console.WriteLine("2. Нет. Выйти.");
+                            userInput = Convert.ToInt32(Console.ReadLine());
+
+                            if(userInput == 1)
+                            {
+                                dailyQueueOfCars = new DailyQueueOfCars();
+                                continue;
+                            }
+                            else if (userInput == 2)
+                            {
+                                carServiceWorking = false;
+                                continue;
+                            }
+                            else
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Неверная команда");
+                                Console.ReadKey();
+                                continue;
+                            }
+                        }
+
                         Console.Clear();
-                        Console.WriteLine("Новый клиент:");
-                        car.DisplayBreakageName();
-                        Console.WriteLine("Цена за работу - " + car.ReturnRepairPrice());
+                        Console.WriteLine("Новый клиент");
+                        car.DisplayListDetails();
                         Console.WriteLine();
                         Console.WriteLine("1. Выбрать деталь для замены");
                         Console.WriteLine("2. Отказатся ремонтировать");
                         userChoice = Convert.ToInt32(Console.ReadLine());
 
-                        if(userChoice == 1)
+                        if (userChoice == 1)
                         {
                             carService.DisplayWarehouseDetail();
                             int DetailNumber = Convert.ToInt32(Console.ReadLine());
@@ -198,9 +225,9 @@ namespace CSLight13_9
 
                 if (_details.Count > 0)
                 {
-                    for(int i = 0; i < _details.Count; i++)
+                    for (int i = 0; i < _details.Count; i++)
                     {
-                        Console.WriteLine($"{i+1}. Наименование детали: {_details[i].Name} Цена: {_details[i].Price}");
+                        Console.WriteLine($"{i + 1}. Наименование детали: {_details[i].Name} Цена: {_details[i].Price}");
                     }
                 }
                 else
@@ -231,7 +258,7 @@ namespace CSLight13_9
 
                 for (int i = 0; i < _details.Count; i++)
                 {
-                    Console.WriteLine($"{i+1}. {_details[i].Name}   Цена: {_details[i].Price}");
+                    Console.WriteLine($"{i + 1}. {_details[i].Name}   Цена: {_details[i].Price}");
                 }
 
                 Console.WriteLine("0. Выйти");
@@ -253,15 +280,32 @@ namespace CSLight13_9
             }
         }
 
-        class City
+        class DailyQueueOfCars
         {
-            private Car _car;
+            private Random _random = new Random();
+            private List<Car> _cars = new List<Car>();
 
-            public Car NextCar()
+            public DailyQueueOfCars()
             {
-                _car = new Car();
+                for (int i = 0; i < _random.Next(10, 15); i++)
+                {
+                    _cars.Add(new Car());
+                }
+            }
 
-                return _car;
+            public Car ReturnNextCar()
+            {
+                if (_cars.Count > 0)
+                {
+                    Car nextCar = _cars[0];
+                    _cars.RemoveAt(0);
+
+                    return nextCar;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -296,14 +340,17 @@ namespace CSLight13_9
                     return -(newDetail.Price + _brokenDetail.RepairPrice) / 2;
             }
 
-            public void DisplayBreakageName()
+            public void DisplayListDetails()
             {
-                Console.WriteLine("Поломка - " + _brokenDetail.BreakageName);
-            }
+                Console.WriteLine("\nСписок деталей его автомобиля:\n");
 
-            public int ReturnRepairPrice()
-            {
-                return _brokenDetail.RepairPrice;
+                foreach (Detail detail in _details)
+                {
+                    if (!detail.Broken)
+                        Console.WriteLine(detail.Name);
+                    else
+                        Console.WriteLine(detail.BreakageName);
+                }
             }
         }
 
