@@ -313,7 +313,6 @@ namespace CSLight13_9
         {
             Random random = new Random();
             private List<Detail> _details = new List<Detail>();
-            private Detail _brokenDetail;
 
             public Car()
             {
@@ -323,21 +322,27 @@ namespace CSLight13_9
                 _details.Add(new Motor());
                 _details.Add(new Hood());
 
-                int brokenDetailID = random.Next(0, 5);
-                _details[brokenDetailID].Break();
-                _brokenDetail = _details[brokenDetailID];
+                _details[random.Next(0, 5)].Break();
             }
 
             public int Repair(Detail newDetail)
             {
-                if (newDetail.Name == _brokenDetail.Name)
+                foreach (Detail detail in _details)
                 {
-                    _brokenDetail.Repair();
+                    if (newDetail.Name == detail.Name)
+                    {
+                        if (detail.Broken)
+                        {
+                            detail.Repair();
 
-                    return newDetail.Price + _brokenDetail.RepairPrice;
+                            return newDetail.Price + detail.RepairPrice;
+                        }
+                        else
+                            return -(newDetail.Price + detail.RepairPrice) / 2;
+                    }
                 }
-                else
-                    return -(newDetail.Price + _brokenDetail.RepairPrice) / 2;
+
+                return 0;
             }
 
             public void DisplayListDetails()
